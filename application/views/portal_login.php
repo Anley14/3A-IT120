@@ -1,6 +1,7 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 $is_employee = $account_role === 'employee';
-$portal_name = $is_employee ? 'Employee Login' : 'Customer Login';
+$is_admin = $account_role === 'admin';
+$portal_name = $is_admin ? 'Administrator Login' : ($is_employee ? 'Employee Login' : 'Customer Login');
 ?>
 <!doctype html>
 <html lang="en">
@@ -37,8 +38,8 @@ $portal_name = $is_employee ? 'Employee Login' : 'Customer Login';
         <span><strong>Sun Son Solar</strong><small>CLEAN ENERGY CO.</small></span>
       </a>
       <div class="welcome__copy">
-        <h1><?php echo $is_employee ? 'Welcome back<br>to the Team!' : 'Welcome back,<br>Sun Son customer!'; ?></h1>
-        <p><?php echo $is_employee ? 'Sign in to continue your work powering a brighter, cleaner tomorrow.' : 'Sign in to stay connected with your solar journey.'; ?></p>
+        <h1><?php echo $is_admin ? 'Welcome back<br>to the Office!' : ($is_employee ? 'Welcome back<br>to the Team!' : 'Welcome back,<br>Sun Son customer!'); ?></h1>
+        <p><?php echo ($is_employee || $is_admin) ? 'Sign in to continue your work powering a brighter, cleaner tomorrow.' : 'Sign in to stay connected with your solar journey.'; ?></p>
       </div>
       <svg class="solar-art" viewBox="0 0 380 260" role="img" aria-label="Illustration of solar panels beneath a shining sun">
         <g class="art-sun"><circle cx="190" cy="64" r="16"/><path d="M190 25v13m0 52v13m-39-39h13m52 0h13m-66-27 9 9m36 36 9 9m0-54-9 9m-36 36-9 9"/></g>
@@ -52,7 +53,7 @@ $portal_name = $is_employee ? 'Employee Login' : 'Customer Login';
       <div class="form-wrap login-form-wrap">
         <header class="form-header">
           <h2 id="form-title"><?php echo html_escape($portal_name); ?></h2>
-          <p><?php echo $is_employee ? 'Access your employee workspace' : 'Sign in to your customer account'; ?></p>
+          <p><?php echo $is_admin ? 'Access the Sun Son administration workspace' : ($is_employee ? 'Access your employee workspace' : 'Sign in to your customer account'); ?></p>
         </header>
         <?php if (!empty($login_error)): ?><p class="login-error" role="alert"><?php echo html_escape($login_error); ?></p><?php endif; ?>
         <?php if (!empty($employee_notice)): ?><p class="login-info" role="status"><?php echo html_escape($employee_notice); ?></p><?php endif; ?>
@@ -64,7 +65,7 @@ $portal_name = $is_employee ? 'Employee Login' : 'Customer Login';
           <div class="login-note"><span class="login-note-icon" aria-hidden="true">✳</span><span><strong><?php echo $is_employee ? 'Employee access' : 'Your solar account'; ?></strong><?php echo $is_employee ? 'Sign in with the credentials connected to your employee account.' : 'Sign in to keep your account and solar service details close at hand.'; ?></span></div>
           <button class="submit-button" type="submit">Log in <span aria-hidden="true">→</span></button>
         </form>
-        <?php if (!$is_employee): ?><p class="login-prompt">New to Sun Son Solar?<a href="<?php echo site_url('register/customer'); ?>">Register</a></p><?php else: ?><p class="login-prompt">Employee accounts are provisioned by HR or an administrator.</p><?php endif; ?>
+        <?php if (!$is_employee && !$is_admin): ?><p class="login-prompt">New to Sun Son Solar?<a href="<?php echo site_url('register/customer'); ?>">Register</a></p><?php elseif ($is_employee): ?><p class="login-prompt">Employee accounts are provisioned by HR or an administrator.</p><?php endif; ?>
         <p class="login-prompt"><a href="<?php echo base_url(); ?>">Back to Sun Son Solar</a></p>
       </div>
     </section>

@@ -34,11 +34,13 @@ CREATE TABLE IF NOT EXISTS users (
   gender VARCHAR(40) NULL,
   country_code VARCHAR(5) NOT NULL DEFAULT '+63',
   phone_number VARCHAR(30) NULL,
+  address VARCHAR(255) NULL,
   email VARCHAR(255) NOT NULL,
   username VARCHAR(80) NOT NULL,
   password VARCHAR(255) NOT NULL,
   role ENUM('customer', 'employee') NOT NULL DEFAULT 'customer',
   department VARCHAR(100) NULL,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_users_email (email),
@@ -58,6 +60,7 @@ CREATE TABLE IF NOT EXISTS employees (
   username VARCHAR(80) NOT NULL,
   password VARCHAR(255) NOT NULL,
   department VARCHAR(100) NOT NULL,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_employees_email (email),
@@ -104,6 +107,80 @@ CREATE TABLE IF NOT EXISTS shop_order_items (
   line_total DECIMAL(12,2) NOT NULL,
   PRIMARY KEY (id),
   KEY idx_shop_order_items_order (order_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS service_bookings (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  customer_id INT UNSIGNED NOT NULL,
+  technician_id INT UNSIGNED NULL,
+  service VARCHAR(80) NOT NULL,
+  requested_at DATETIME NOT NULL,
+  service_address VARCHAR(255) NOT NULL,
+  notes TEXT NULL,
+  status VARCHAR(30) NOT NULL DEFAULT 'Requested',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NULL,
+  PRIMARY KEY (id),
+  KEY idx_service_bookings_customer (customer_id),
+  KEY idx_service_bookings_technician (technician_id),
+  KEY idx_service_bookings_requested (requested_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS support_tickets (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  customer_id INT UNSIGNED NOT NULL,
+  subject VARCHAR(160) NOT NULL,
+  details TEXT NOT NULL,
+  status VARCHAR(30) NOT NULL DEFAULT 'Open',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_support_tickets_customer (customer_id),
+  KEY idx_support_tickets_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS system_notifications (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  title VARCHAR(140) NOT NULL,
+  message TEXT NOT NULL,
+  audience VARCHAR(30) NOT NULL DEFAULT 'all',
+  user_id INT UNSIGNED NULL,
+  created_by INT UNSIGNED NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_system_notifications_audience (audience, user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS technician_checkins (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  booking_id INT UNSIGNED NOT NULL,
+  employee_id INT UNSIGNED NOT NULL,
+  latitude DECIMAL(10,7) NULL,
+  longitude DECIMAL(10,7) NULL,
+  checked_in_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_technician_checkins_booking (booking_id),
+  KEY idx_technician_checkins_employee (employee_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS job_reports (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  booking_id INT UNSIGNED NOT NULL,
+  employee_id INT UNSIGNED NOT NULL,
+  details TEXT NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_job_reports_booking (booking_id),
+  KEY idx_job_reports_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS service_catalog (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  service_name VARCHAR(80) NOT NULL,
+  estimate_price DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_service_catalog_name (service_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Local demo accounts for trying the separate customer and employee portals.

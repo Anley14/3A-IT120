@@ -29,6 +29,7 @@
             <span class="dropdown-label">SIGN IN</span>
             <a href="<?php echo site_url('auth/login/customer'); ?>">Customer login <span>→</span></a>
             <a href="<?php echo site_url('auth/login/employee'); ?>">Employee login <span>→</span></a>
+            <a href="<?php echo site_url('auth/login/admin'); ?>">Administrator login <span>→</span></a>
             <span class="dropdown-label dropdown-label--register">REGISTER</span>
             <a href="<?php echo site_url('register/customer'); ?>">Customer account <span>→</span></a>
             <span class="dropdown-label">Employee accounts are provisioned by HR or an administrator.</span>

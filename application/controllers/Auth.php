@@ -5,7 +5,7 @@ class Auth extends CI_Controller {
 
     /** Show the selected account portal. */
     public function login($role = 'customer') {
-        if (!in_array($role, array('customer', 'employee'), TRUE)) {
+        if (!in_array($role, array('customer', 'employee', 'admin'), TRUE)) {
             show_404();
             return;
         }
@@ -25,7 +25,7 @@ class Auth extends CI_Controller {
 
     /** Verify credentials only against the account type selected on the portal. */
     public function process_login($role = 'customer') {
-        if (!in_array($role, array('customer', 'employee'), TRUE) || $this->input->method(TRUE) !== 'POST') {
+        if (!in_array($role, array('customer', 'employee', 'admin'), TRUE) || $this->input->method(TRUE) !== 'POST') {
             show_404();
             return;
         }
@@ -38,17 +38,27 @@ class Auth extends CI_Controller {
             return;
         }
 
-        $table = $role === 'employee' ? 'employees' : 'users';
-        $this->db->group_start()
+        if ($role === 'admin') {
+            $this->db->where('username', $identifier)->or_where('email', strtolower($identifier));
+            $account = $this->db->get('admins')->row_array();
+            $password_hash = $account && isset($account['password_hash']) ? $account['password_hash'] : '';
+            $valid = $account && (!isset($account['is_active']) || (int) $account['is_active'] === 1)
+                && password_verify($password, $password_hash);
+        } else {
+            $table = $role === 'employee' ? 'employees' : 'users';
+            $this->db->group_start()
             ->where('username', $identifier)
             ->or_where('email', strtolower($identifier))
             ->group_end();
-        if ($role === 'customer') {
-            $this->db->where('role', 'customer');
+            if ($role === 'customer') {
+                $this->db->where('role', 'customer');
+            }
+            if ($this->db->field_exists('is_active', $table)) $this->db->where('is_active', 1);
+            $account = $this->db->get($table)->row_array();
+            $valid = $account && isset($account['password']) && password_verify($password, $account['password']);
         }
-        $account = $this->db->get($table)->row_array();
 
-        if (!$account || !isset($account['password']) || !password_verify($password, $account['password'])) {
+        if (!$valid) {
             $this->session->set_flashdata('login_error', 'We could not sign you in with those details. Check them and try again.');
             redirect('auth/login/' . $role);
             return;
@@ -56,27 +66,36 @@ class Auth extends CI_Controller {
 
         $this->session->sess_regenerate(TRUE);
         $this->session->set_userdata('sunson_account', array(
-            'id' => (int) $account['id'],
+            'id' => (int) ($role === 'admin' ? $account['admin_id'] : $account['id']),
             'role' => $role,
             'name' => trim($account['first_name'] . ' ' . $account['last_name']),
             'username' => $account['username'],
             'department' => isset($account['department']) ? $account['department'] : NULL
         ));
+        if ($role === 'admin' && !empty($account['must_change_password'])) $this->session->set_userdata('sunson_force_password_change', TRUE);
+        if ($role !== 'customer') {
+            redirect('portal');
+            return;
+        }
         redirect('auth/dashboard');
     }
 
     /** Display the signed-in area for the current account type. */
     public function dashboard() {
         $account = $this->session->userdata('sunson_account');
-        if (!is_array($account) || !isset($account['role']) || !in_array($account['role'], array('customer', 'employee'), TRUE)) {
+        if (!is_array($account) || !isset($account['role']) || !in_array($account['role'], array('customer', 'employee', 'admin'), TRUE)) {
             redirect('auth/login/customer');
+            return;
+        }
+        if ($account['role'] === 'employee') {
+            redirect('portal');
             return;
         }
 
         $this->_ensure_quote_dashboard_fields();
         $this->load->model('Shop_model', 'shop');
         $this->shop->ensure_tables();
-        if ($account['role'] === 'employee') {
+        if ($account['role'] === 'employee' || $account['role'] === 'admin') {
             $requests = $this->db->order_by('created_at', 'DESC')->get('quote_requests')->result_array();
             $orders = $this->shop->all_orders();
         } else {
@@ -96,7 +115,7 @@ class Auth extends CI_Controller {
     public function update_quote_status() {
         $account = $this->session->userdata('sunson_account');
         if ($this->input->method(TRUE) !== 'POST' || !is_array($account)
-            || !isset($account['role']) || $account['role'] !== 'employee') {
+            || !isset($account['role']) || $account['role'] !== 'admin') {
             show_404();
             return;
         }

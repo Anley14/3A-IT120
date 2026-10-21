@@ -31,7 +31,7 @@ $active_count = $counts['New'] + $counts['Contacted'] + $counts['Scheduled'];
     <div class="wrap dashboard-wrap">
       <header class="dashboard-top">
         <a class="brand" href="<?php echo base_url(); ?>" aria-label="Sun Son Solar home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="17" r="6"/><path d="M20 2v5m0 20v6M5 17h6m18 0h6M9.4 6.4 13 10m14 14 3.6 3.6M30.6 6.4 27 10m-14 14-3.6 3.6M7 33h26l-3-7H10z"/></svg></span><span><strong>sun son</strong><small>SOLAR CO.</small></span></a>
-        <?php echo form_open('auth/logout'); ?><button class="signout" type="submit">Sign out</button></form>
+        <a class="signout" href="<?php echo site_url('portal'); ?>">Workspace</a><?php echo form_open('auth/logout'); ?><button class="signout" type="submit">Sign out</button></form>
       </header>
 
       <section class="dashboard-main">

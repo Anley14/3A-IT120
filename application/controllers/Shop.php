@@ -60,13 +60,13 @@ class Shop extends CI_Controller {
         $account=$this->session->userdata('sunson_account');
         if (!is_array($account) || !isset($account['role'],$account['id'])) { redirect('auth/login/customer'); return; }
         $order=$this->shop->find_order((int)$id);
-        if (!$order || ($account['role']==='customer' && (int)$order['customer_id']!==(int)$account['id']) || !in_array($account['role'],array('customer','employee'),TRUE)) { show_404(); return; }
+        if (!$order || ($account['role']==='customer' && (int)$order['customer_id']!==(int)$account['id']) || !in_array($account['role'],array('customer','admin'),TRUE)) { show_404(); return; }
         $this->load->view('shop_order',array('order'=>$order,'items'=>$this->shop->order_items($id),'success'=>$this->session->flashdata('shop_success')));
     }
 
     public function update_order_status() {
         $account=$this->session->userdata('sunson_account');
-        if ($this->input->method(TRUE)!=='POST' || !is_array($account) || !isset($account['role']) || $account['role']!=='employee') { show_404(); return; }
+        if ($this->input->method(TRUE)!=='POST' || !is_array($account) || !isset($account['role']) || $account['role']!=='admin') { show_404(); return; }
         $id=(int)$this->input->post('order_id',TRUE); $status=$this->input->post('status',TRUE);
         if (!$this->shop->find_order($id) || !in_array($status,array('New','Confirmed','Scheduled','Completed','Cancelled'),TRUE)) { $this->session->set_flashdata('dashboard_error','Choose a valid order and status.'); redirect('auth/dashboard'); return; }
         $saved=$this->db->where('id',$id)->update('shop_orders',array('status'=>$status));
