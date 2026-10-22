@@ -1,21 +1,24 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
+<?php defined('BASEPATH') OR exit('No direct script access allowed');
+$account_role = isset($account_role) ? $account_role : 'customer';
+$is_employee = $account_role === 'employee';
+?>
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f5f8ff">
-  <title>Create an account | Sun Son Solar</title>
+  <title><?php echo $is_employee ? 'Employee registration' : 'Customer registration'; ?> | Sun Son Solar</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?php echo base_url('assets/css/registration.css'); ?>">
   <script src="<?php echo base_url('assets/js/registration.js'); ?>" defer></script>
 </head>
-<body>
+<body data-account-role="<?php echo html_escape($account_role); ?>">
   <main class="registration">
     <section class="welcome" aria-label="Welcome to Sun Son Solar">
-      <a class="brand" href="#" aria-label="Sun Son Solar home">
+      <a class="brand" href="<?php echo base_url(); ?>" aria-label="Sun Son Solar home">
         <svg class="brand__icon" viewBox="0 0 52 52" aria-hidden="true">
           <circle cx="26" cy="23" r="8" />
           <g class="rays">
@@ -30,8 +33,8 @@
         </span>
       </a>
       <div class="welcome__copy">
-        <h1>Welcome to<br>the Team!</h1>
-        <p>Join Sun Son Solar and help us<br>power a brighter, cleaner<br>tomorrow.</p>
+        <h1><?php echo $is_employee ? 'Welcome to<br>the Team!' : 'Welcome to<br>Sun Son Solar!'; ?></h1>
+        <p><?php echo $is_employee ? 'Join our team and help us power a brighter, cleaner tomorrow.' : 'Let’s start your journey to a brighter, cleaner tomorrow.'; ?></p>
       </div>
       <svg class="solar-art" viewBox="0 0 380 260" role="img" aria-label="Illustration of solar panels beneath a shining sun">
         <g class="art-sun">
@@ -71,24 +74,16 @@
     <section class="form-panel" aria-labelledby="form-title">
       <div class="form-wrap">
         <header class="form-header">
-          <h2 id="form-title">Register for an Account</h2>
-          <p>Join our platform — let's get you set up</p>
+          <h2 id="form-title"><?php echo $is_employee ? 'Employee Registration' : 'Customer Registration'; ?></h2>
+          <p><?php echo $is_employee ? 'Create your Sun Son team account' : 'Join us and start your solar journey'; ?></p>
         </header>
         <?php if ($this->session->flashdata('registration_error')): ?>
           <p role="alert"><?php echo html_escape($this->session->flashdata('registration_error')); ?></p>
         <?php elseif ($this->session->flashdata('registration_success')): ?>
           <p role="status"><?php echo html_escape($this->session->flashdata('registration_success')); ?></p>
         <?php endif; ?>
-        <div class="account-tabs" role="tablist" aria-label="Account type">
-          <button class="account-tabs__tab is-active" id="customer-tab" type="button" role="tab" aria-selected="true" aria-controls="registration-form" tabindex="0" data-account="customer">
-            For Customers
-          </button>
-          <button class="account-tabs__tab" id="employee-tab" type="button" role="tab" aria-selected="false" aria-controls="registration-form" tabindex="-1" data-account="employee">
-            For Employees
-          </button>
-        </div>
-        <?php echo form_open('auth/process_registration', array('class' => 'form', 'id' => 'registration-form', 'role' => 'tabpanel', 'aria-labelledby' => 'customer-tab', 'tabindex' => '0')); ?>
-          <input type="hidden" id="account-role" name="role" value="customer">
+        <?php echo form_open('auth/process_registration', array('class' => 'form', 'id' => 'registration-form')); ?>
+          <input type="hidden" id="account-role" name="role" value="<?php echo html_escape($account_role); ?>">
           <div class="form-divider"><span>Personal Information</span></div>
           <div class="fields fields--personal">
             <label class="field">
@@ -162,7 +157,7 @@
               <input type="password" name="confirm_password" autocomplete="new-password" placeholder="Confirm Password" required minlength="8">
             </label>
           </div>
-          <section class="employee-details" id="employee-details" aria-labelledby="employee-title" hidden>
+          <section class="employee-details" id="employee-details" aria-labelledby="employee-title" <?php if (!$is_employee): ?>hidden<?php endif; ?>>
             <div class="employee-details__heading">
               <span class="employee-details__icon">⌂</span>
               <strong id="employee-title">Employee Details</strong>
@@ -171,7 +166,7 @@
             <label class="field">
               <span class="field__icon">⌂</span>
               <span class="sr-only">Department</span>
-              <select name="department" aria-label="Department" disabled>
+              <select name="department" aria-label="Department" <?php if (!$is_employee): ?>disabled<?php else: ?>required<?php endif; ?>>
                 <option value="" selected>Select Department</option>
                 <option>IT</option>
                 <option>Dispatch</option>
@@ -189,7 +184,7 @@
             Register <span aria-hidden="true">→</span>
           </button>
         </form>
-        <p class="login-prompt">Already have an account? <a href="#login">Log in</a></p>
+        <p class="login-prompt">Already have an account? <a href="<?php echo site_url('auth/login/' . $account_role); ?>">Log in</a></p>
         <div class="form-divider form-divider--social"><span>or continue with</span></div>
         <div class="social-login">
           <button type="button"><b class="google">G</b> Google</button>
